@@ -13,120 +13,117 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-#       - name: Installing AngleSharp
-#         run: |
-#           # https://github.com/AngleSharp/AngleSharp
-#           Install-Package AngleSharp -Source https://www.nuget.org/api/v2 -SkipDependencies -Force
+      - name: Installing AngleSharp
+        run: |
+          # https://github.com/AngleSharp/AngleSharp
+          Install-Package AngleSharp -Source https://www.nuget.org/api/v2 -SkipDependencies -Force
 
-#       - name: Downloading YouTube
-#         run: |
-#           # Get latest supported YouTube client version via ReVanced JSON
-#           # It will let us to download always latest YouTube apk supported by ReVanced team
-#           # https://github.com/revanced/revanced-patches/blob/main/patches.json
-#           $Parameters = @{
-#               Uri             = "https://raw.githubusercontent.com/revanced/revanced-patches/main/patches.json"
-#               UseBasicParsing = $true
-#           }
-#           $JSON = Invoke-RestMethod @Parameters
-#           $versions = ($JSON | Where-Object -FilterScript {$_.compatiblePackages.name -eq "com.google.android.youtube"}).compatiblePackages.versions
-#           $LatestSupported = $versions | Sort-Object -Descending -Unique | Select-Object -First 1
-#           $LatestSupportedYT = $LatestSupported.replace(".", "-")
+      - name: Downloading YouTube
+        run: |
+          # Get latest supported YouTube client version via ReVanced JSON
+          # It will let us to download always latest YouTube apk supported by ReVanced team
+          # https://github.com/revanced/revanced-patches/blob/main/patches.json
+          $Parameters = @{
+              Uri             = "https://raw.githubusercontent.com/revanced/revanced-patches/main/patches.json"
+              UseBasicParsing = $true
+          }
+          $JSON = Invoke-RestMethod @Parameters
+          $versions = ($JSON | Where-Object -FilterScript {$_.compatiblePackages.name -eq "com.google.android.youtube"}).compatiblePackages.versions
+          $LatestSupported = $versions | Sort-Object -Descending -Unique | Select-Object -First 1
+          $LatestSupportedYT = $LatestSupported.replace(".", "-")
 
-#           $AngleSharpAssemblyPath = (Get-ChildItem -Path (Split-Path -Path (Get-Package -Name AngleSharp).Source) -Filter "*.dll" -Recurse | Where-Object -FilterScript {$_ -match "standard"} | Select-Object -Last 1).FullName
-#           Add-Type -Path $AngleSharpAssemblyPath
+          $AngleSharpAssemblyPath = (Get-ChildItem -Path (Split-Path -Path (Get-Package -Name AngleSharp).Source) -Filter "*.dll" -Recurse | Where-Object -FilterScript {$_ -match "standard"} | Select-Object -Last 1).FullName
+          Add-Type -Path $AngleSharpAssemblyPath
 
-#           # Get unique key to generate direct link
-#           # https://www.apkmirror.com/apk/google-inc/youtube/
-#           $Parameters = @{
-#               Uri             = "https://www.apkmirror.com/apk/google-inc/youtube/youtube-$($LatestSupportedYT)-release/youtube-$($LatestSupportedYT)-2-android-apk-download/"
-#               UseBasicParsing = $false # Disabled
-#               Verbose         = $true
-#           }
-#           $Request = Invoke-Webrequest @Parameters
-#           $Parsed = (New-Object -TypeName AngleSharp.Html.Parser.HtmlParser).ParseDocument($Request.Content)
-#           $Key = $Parsed.All | Where-Object -FilterScript {$_.ClassName -match "accent_bg btn btn-flat downloadButton"} | ForEach-Object -Process {$_.Search}
+          # Get unique key to generate direct link
+          # https://www.apkmirror.com/apk/google-inc/youtube/
+          $Parameters = @{
+              Uri             = "https://www.apkmirror.com/apk/google-inc/youtube/youtube-$($LatestSupportedYT)-release/youtube-$($LatestSupportedYT)-2-android-apk-download/"
+              UseBasicParsing = $false # Disabled
+              Verbose         = $true
+          }
+          $Request = Invoke-Webrequest @Parameters
+          $Parsed = (New-Object -TypeName AngleSharp.Html.Parser.HtmlParser).ParseDocument($Request.Content)
+          $Key = $Parsed.All | Where-Object -FilterScript {$_.ClassName -match "accent_bg btn btn-flat downloadButton"} | ForEach-Object -Process {$_.Search}
 
-#           $Parameters = @{
-#               Uri             = "https://www.apkmirror.com/apk/google-inc/youtube/youtube-$($LatestSupportedYT)-release/youtube-$($LatestSupportedYT)-2-android-apk-download/download/$($Key)"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           $Request = Invoke-Webrequest @Parameters
-#           $Parsed = (New-Object -TypeName AngleSharp.Html.Parser.HtmlParser).ParseDocument($Request.Content)
-#           $Key = ($Parsed.All | Where-Object -FilterScript {$_.InnerHtml -eq "here"}).Search
+          $Parameters = @{
+              Uri             = "https://www.apkmirror.com/apk/google-inc/youtube/youtube-$($LatestSupportedYT)-release/youtube-$($LatestSupportedYT)-2-android-apk-download/download/$($Key)"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          $Request = Invoke-Webrequest @Parameters
+          $Parsed = (New-Object -TypeName AngleSharp.Html.Parser.HtmlParser).ParseDocument($Request.Content)
+          $Key = ($Parsed.All | Where-Object -FilterScript {$_.InnerHtml -eq "here"}).Search
 
-#           # Finally, get the real link
-#           $Parameters = @{
-#               Uri             = "https://www.apkmirror.com/wp-content/themes/APKMirror/download.php$Key"
-#               OutFile         = "$PSScriptRoot\youtube.apk"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           Invoke-Webrequest @Parameters
+          # Finally, get the real link
+          $Parameters = @{
+              Uri             = "https://www.apkmirror.com/wp-content/themes/APKMirror/download.php$Key"
+              OutFile         = "$PSScriptRoot\youtube.apk"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          Invoke-Webrequest @Parameters
 
-#           (Get-Content -Path Release.md -Encoding utf8).replace("YouTubeTag", $LatestSupported) | Set-Content -Path Release.md -Encoding utf8 -Force
+          (Get-Content -Path Release.md -Encoding utf8).replace("YouTubeTag", $LatestSupported) | Set-Content -Path Release.md -Encoding utf8 -Force
 
-#       - name: Downloading ReVanced CLI
-#         run: |
-#           # https://github.com/revanced/revanced-cli
-#           $Parameters = @{
-#               Uri             = "https://api.github.com/repos/revanced/revanced-cli/releases/latest"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           $Tag = (Invoke-RestMethod @Parameters).tag_name
-#           $Tag2 = $Tag.replace("v", "")
-#           $Parameters = @{
-#               Uri             = "https://github.com/revanced/revanced-cli/releases/download/$Tag/revanced-cli-$Tag2-all.jar"
-#               Outfile         = "$PSScriptRoot\revanced-cli.jar"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           Invoke-RestMethod @Parameters
+      - name: Downloading ReVanced CLI
+        run: |
+          # https://github.com/revanced/revanced-cli
+          $Parameters = @{
+              Uri             = "https://api.github.com/repos/revanced/revanced-cli/releases/latest"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          $Tag = (Invoke-RestMethod @Parameters).tag_name
+          $Tag2 = $Tag.replace("v", "")
+          $Parameters = @{
+              Uri             = "https://github.com/revanced/revanced-cli/releases/download/$Tag/revanced-cli-$Tag2-all.jar"
+              Outfile         = "$PSScriptRoot\revanced-cli.jar"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          Invoke-RestMethod @Parameters
 
-#           (Get-Content -Path Release.md -Encoding utf8).replace("CLITag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
+          (Get-Content -Path Release.md -Encoding utf8).replace("CLITag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
 
-#       - name: Downloading ReVanced Patches
-#         run: |
-#           # https://github.com/revanced/revanced-patches
-#           $Parameters = @{
-#               Uri             = "https://api.github.com/repos/revanced/revanced-patches/releases/latest"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           $Tag = (Invoke-RestMethod @Parameters).tag_name
-#           $Tag2 = $Tag.replace("v", "")
-#           $Parameters = @{
-#               Uri             = "https://github.com/revanced/revanced-patches/releases/download/$Tag/revanced-patches-$Tag2.jar"
-#               Outfile         = "$PSScriptRoot\revanced-patches.jar"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           Invoke-RestMethod @Parameters
+      - name: Downloading ReVanced Patches
+        run: |
+          # https://github.com/revanced/revanced-patches
+          $Parameters = @{
+              Uri             = "https://api.github.com/repos/revanced/revanced-patches/releases/latest"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          $Tag = (Invoke-RestMethod @Parameters).tag_name
+          $Tag2 = $Tag.replace("v", "")
+          $Parameters = @{
+              Uri             = "https://github.com/revanced/revanced-patches/releases/download/$Tag/revanced-patches-$Tag2.jar"
+              Outfile         = "$PSScriptRoot\revanced-patches.jar"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          Invoke-RestMethod @Parameters
 
-#           (Get-Content -Path Release.md -Encoding utf8).replace("PatchesTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
+          (Get-Content -Path Release.md -Encoding utf8).replace("PatchesTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
 
-#       - name: Downloading ReVanced Integrations
-#         run: |
-#           # https://github.com/revanced/revanced-integrations
-#           $Parameters = @{
-#               Uri             = "https://api.github.com/repos/revanced/revanced-integrations/releases/latest"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           $Tag = (Invoke-RestMethod @Parameters).tag_name
-#           $Parameters = @{
-#               Uri             = "https://github.com/revanced/revanced-integrations/releases/download/$Tag/app-release-unsigned.apk"
-#               Outfile         = "$PSScriptRoot\app-release-unsigned.apk"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           Invoke-RestMethod @Parameters
+      - name: Downloading ReVanced Integrations
+        run: |
+          # https://github.com/revanced/revanced-integrations
+          $Parameters = @{
+              Uri             = "https://api.github.com/repos/revanced/revanced-integrations/releases/latest"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          $Tag = (Invoke-RestMethod @Parameters).tag_name
+          $Parameters = @{
+              Uri             = "https://github.com/revanced/revanced-integrations/releases/download/$Tag/app-release-unsigned.apk"
+              Outfile         = "$PSScriptRoot\app-release-unsigned.apk"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          Invoke-RestMethod @Parameters
 
-#           (Get-Content -Path Release.md -Encoding utf8).replace("IntegrationsTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
-
-
-# ------------------------------------------------
+          (Get-Content -Path Release.md -Encoding utf8).replace("IntegrationsTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
 
 
 #       - name: Downloading GmsCore
@@ -149,53 +146,52 @@ jobs:
 
 #           (Get-Content -Path Release.md -Encoding utf8).replace("GmsCoreTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
 
-#       - name: Downloading latest Zulu JDK
-#         run: |
-#           # https://github.com/ScoopInstaller/Java/blob/master/bucket/zulu-jdk.json
-#           $Parameters = @{
-#               Uri             = "https://raw.githubusercontent.com/ScoopInstaller/Java/master/bucket/zulu-jdk.json"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           $URL = (Invoke-RestMethod @Parameters).architecture."64bit".url
-#           $Tag = (Invoke-RestMethod @Parameters).version
-#           $Parameters = @{
-#               Uri             = $URL
-#               Outfile         = "$PSScriptRoot\jdk_windows-x64_bin.zip"
-#               UseBasicParsing = $true
-#               Verbose         = $true
-#           }
-#           Invoke-RestMethod @Parameters
+      - name: Downloading latest Zulu JDK
+        run: |
+          # https://github.com/ScoopInstaller/Java/blob/master/bucket/zulu-jdk.json
+          $Parameters = @{
+              Uri             = "https://raw.githubusercontent.com/ScoopInstaller/Java/master/bucket/zulu-jdk.json"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          $URL = (Invoke-RestMethod @Parameters).architecture."64bit".url
+          $Tag = (Invoke-RestMethod @Parameters).version
+          $Parameters = @{
+              Uri             = $URL
+              Outfile         = "$PSScriptRoot\jdk_windows-x64_bin.zip"
+              UseBasicParsing = $true
+              Verbose         = $true
+          }
+          Invoke-RestMethod @Parameters
 
-#           (Get-Content -Path Release.md -Encoding utf8).replace("ZuluTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
+          (Get-Content -Path Release.md -Encoding utf8).replace("ZuluTag", $Tag) | Set-Content -Path Release.md -Encoding utf8 -Force
 
-#       - name: Expanding Zulu JDK
-#         run: |
-#           # Expand jdk_windows-x64_bin archive
-#           $Parameters = @{
-#               Path            = "$PSScriptRoot\jdk_windows-x64_bin.zip"
-#               DestinationPath = "$PSScriptRoot\jdk_windows-x64_bin"
-#               Force           = $true
-#               Verbose         = $true
-#           }
-#           Expand-Archive @Parameters
+      - name: Expanding Zulu JDK
+        run: |
+          # Expand jdk_windows-x64_bin archive
+          $Parameters = @{
+              Path            = "$PSScriptRoot\jdk_windows-x64_bin.zip"
+              DestinationPath = "$PSScriptRoot\jdk_windows-x64_bin"
+              Force           = $true
+              Verbose         = $true
+          }
+          Expand-Archive @Parameters
 
-#           Remove-Item -Path "$PSScriptRoot\jdk_windows-x64_bin.zip" -Force
+          Remove-Item -Path "$PSScriptRoot\jdk_windows-x64_bin.zip" -Force
 
-#       - name: Building
-#         run: |
-#           # https://github.com/revanced/revanced-patches
-#           & "$PSScriptRoot\jdk_windows-x64_bin\zulu*win_x64\bin\java.exe" `
-#           -jar "$PSScriptRoot\revanced-cli.jar" `
-#           --apk "$PSScriptRoot\youtube.apk" `
-#           --bundles "$PSScriptRoot\revanced-patches.jar" `
-#           --merge "$PSScriptRoot\app-release-unsigned.apk" `
-#           --exclude timeline-ads `
-#           --exclude pflotsh-ecmwf-subscription-unlock `
-#           --exclude minimized-playback-music `
+      - name: Building
+        run: |
+          # https://github.com/revanced/revanced-patches
+          & "$PSScriptRoot\jdk_windows-x64_bin\zulu*win_x64\bin\java.exe" `
+          -jar "$PSScriptRoot\revanced-cli.jar" `
+          --apk "$PSScriptRoot\youtube.apk" `
+          --bundles "$PSScriptRoot\revanced-patches.jar" `
+          --merge "$PSScriptRoot\app-release-unsigned.apk" `
+          --clean `
+          --temp-dir "$PSScriptRoot\Temp" `
+          --out "$PSScriptRoot\revanced.apk"
+
 #           --exclude minimized-playback `
-#           --exclude tasteBuilder-remover `
-#           --exclude hide-get-premium `
 #           --exclude compact-header `
 #           --exclude upgrade-button-remover `
 #           --exclude background-play `
@@ -215,19 +211,11 @@ jobs:
 #           --exclude tablet-mini-player `
 #           --exclude always-autorepeat `
 #           --exclude hide-infocard-suggestions `
-#           --clean `
-#           --temp-dir "$PSScriptRoot\Temp" `
-#           --out "$PSScriptRoot\revanced.apk"
-
-
-
-
-#              Path             = "$PSScriptRoot\revanced.apk", "$GITHUB_WORKSPACE\microg.apk"
 
       - name: Creating archive
         run: |
           $Parameters = @{
-              Path             = "microg.apk"
+              Path             = "$PSScriptRoot\revanced.apk", "microg.apk"
               DestinationPath  = "ReVanced.zip"
               CompressionLevel = "Fastest"
               Force            = $true
