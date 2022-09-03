@@ -227,7 +227,7 @@ jobs:
       - name: Creating archive
         run: |
           $Parameters = @{
-              Path             = "$GITHUB_WORKSPACE\microg.apk"
+              Path             = "microg.apk"
               DestinationPath  = "ReVanced.zip"
               CompressionLevel = "Fastest"
               Force            = $true
